@@ -1,0 +1,24 @@
+<article class="food-card" data-food-card data-category="{{ food['category'] }}" data-food-name="{{ food['name']|lower }}">
+  <div class="food-image-wrap">
+    {% if food['image'] %}<img class="food-image" src="{{ food['image'] }}?auto=format&amp;fit=crop&amp;w=720&amp;q=85"
+         alt="{{ food['name'] }}" loading="lazy">{% else %}<span class="food-placeholder" aria-hidden="true">🍽</span>{% endif %}
+    <span class="food-badge">{{ food['badge'] }}</span>
+    {% if food['rating'] %}<span class="food-rating"><span aria-hidden="true">★</span> {{ food['rating'] }}</span>{% endif %}
+  </div>
+  <div class="food-info">
+    <span class="food-category">{{ food['category']|replace("-", " ")|title }}</span>
+    <h3>{{ food['name'] }}</h3>
+    <p>{{ food['description'] }}</p>
+    <div class="food-card-bottom">
+      <strong>₹{{ food['price'] }}</strong>
+      <form method="post" action="{{ url_for('customer.add_to_cart', food_id=food['id'], return_to='menu' if request.endpoint == 'menu' else 'home') }}">
+        {{ add_form.hidden_tag() }}
+        {% if food['stock_quantity'] > 0 %}
+        <button class="add-cart-menu-button" type="submit" aria-label="Add {{ food['name'] }} to cart"><span aria-hidden="true">＋</span> Add to cart</button>
+        {% else %}
+        <button class="add-cart-menu-button" type="button" disabled>Out of stock</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</article>

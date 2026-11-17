@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Delivery Dashboard | FoodExpress{% endblock %}
+{% block site_header %}{% endblock %}
+{% block site_footer %}{% endblock %}
+
+{% block content %}
+<div class="delivery-shell">
+  <aside class="delivery-sidebar">
+    <a class="brand dashboard-brand" href="{{ url_for('delivery.dashboard') }}">
+      <span class="brand-mark" aria-hidden="true">F</span>
+      <span>Food<span class="brand-accent">Express</span></span>
+    </a>
+    <span class="delivery-sidebar-label">DELIVERY WORKSPACE</span>
+    <nav class="delivery-nav" aria-label="Delivery dashboard">
+      <a href="#assigned-orders" class="is-current"><span class="delivery-nav-icon" aria-hidden="true">⌖</span> Assigned orders <span class="delivery-nav-count">{{ assigned_orders|length }}</span></a>
+      <a href="#completed-deliveries"><span class="delivery-nav-icon" aria-hidden="true">✓</span> Completed deliveries <span class="delivery-nav-count">{{ completed_orders|length }}</span></a>
+    </nav>
+    <div class="delivery-user-card">
+      <span>Signed in as</span>
+      <strong>{{ delivery_person['name'] }}</strong>
+      <small>{{ delivery_person['email'] }}</small>
+    </div>
+    <form method="post" action="{{ url_for('delivery.logout') }}" class="delivery-logout">
+      {{ logout_form.hidden_tag() }}
+      <button type="submit">↪ Log out</button>
+    </form>
+  </aside>
+
+  <main class="delivery-main">
+    <header class="delivery-topbar">
+      <div><span class="eyebrow">YOUR DELIVERY ROUTE</span><p>Customer details stay private to your assigned orders.</p></div>
+      <span class="delivery-avatar">{{ delivery_person['name'][0]|upper }}</span>
+    </header>
+    <section class="delivery-welcome">
+      <span class="eyebrow eyebrow-light">FOODEXPRESS DELIVERY</span>
+      <h1>Ready to roll, {{ delivery_person['name'].split()[0] }}?</h1>
+      <p>Review your assigned deliveries and keep customers updated at every step.</p>
+    </section>
+
+    <div class="delivery-stats">
+      <a href="#assigned-orders"><span>ACTIVE DELIVERIES</span><strong>{{ assigned_orders|length }}</strong></a>
+      <a href="#completed-deliveries"><span>COMPLETED</span><strong>{{ completed_orders|length }}</strong></a>
+    </div>
+
+    <section class="delivery-section" id="assigned-orders">
+      <div class="delivery-section-heading">
+        <div><span class="eyebrow">YOUR CURRENT ROUTE</span><h2>Assigned orders</h2></div>
+      </div>
+      <div class="delivery-order-list">
+        {% for order in assigned_orders %}
+        <article class="delivery-order-card">
+          <div class="delivery-order-heading">
+            <div><span class="eyebrow">ORDER #{{ order['order_number'] }}</span><h3>Order ID {{ order['id'] }}</h3></div>
+            <span class="delivery-status status-{{ order['tracking_status']|lower|replace(' ', '-') }}">{{ order['tracking_status'] }}</span>
+          </div>
+          <div class="delivery-info-grid">
+            <div><span>CUSTOMER</span><strong>{{ order['customer_name'] }}</strong></div>
+            <div><span>PHONE</span><a href="tel:{{ order['delivery_phone'] or order['customer_phone'] }}">{{ order['delivery_phone'] or order['customer_phone'] }}</a></div>
+            <div class="delivery-address"><span>DELIVERY ADDRESS</span><strong>{{ order['delivery_address'] or "Address not recorded" }}</strong></div>
+            <div><span>ORDERED</span><strong>{{ order['created_at'] }}</strong></div>
+          </div>
+          <div class="delivery-items">
+            <h4>Food items</h4>
+            {% for item in items_by_order.get(order['id'], []) %}
+            <div><span>{{ item['quantity'] }} × {{ item['food_name'] }}</span><strong>₹{{ item['line_total'] }}</strong></div>
+            {% endfor %}
+          </div>
+          <div class="delivery-order-footer">
+            <strong class="delivery-order-total">Order amount: ₹{{ order['total'] }}</strong>
+            {% if order['tracking_status'] in ['Ready for Pickup', 'Out for Delivery'] %}
+            {% set status_form = status_forms[order['id']] %}
+            <form method="post" action="{{ url_for('delivery.update_order_status', order_id=order['id']) }}" class="delivery-status-form">
+              {{ status_form.hidden_tag() }}
+              {{ status_form.status(class_="form-input") }}
+              <button type="submit" class="button">{{ "Start delivery" if order['tracking_status'] == 'Ready for Pickup' else "Mark delivered" }} <span aria-hidden="true">→</span></button>
+            </form>
+            {% else %}
+            <span class="delivery-waiting-note">Waiting for the restaurant to prepare this order.</span>
+            {% endif %}
+          </div>
+        </article>
+        {% else %}
+        <div class="delivery-empty-state"><span aria-hidden="true">🛵</span><h3>No active deliveries assigned</h3><p>New assignments will appear here.</p></div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="delivery-section" id="completed-deliveries">
+      <div class="delivery-section-heading">
+        <div><span class="eyebrow">NICE WORK</span><h2>Completed deliveries</h2></div>
+      </div>
+      {% if completed_orders %}
+      <div class="delivery-completed-list">
+        {% for order in completed_orders %}
+        <article class="delivery-completed-card">
+          <span class="delivery-complete-check" aria-hidden="true">✓</span>
+          <div><strong>#{{ order['order_number'] }} · {{ order['customer_name'] }}</strong><small>{{ order['created_at'] }} · {{ order['delivery_address'] }}</small></div>
+          <strong>₹{{ order['total'] }}</strong>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="delivery-empty-state compact-delivery-empty"><p>Completed deliveries will appear here.</p></div>
+      {% endif %}
+    </section>
+    <footer class="delivery-footer">Every delivery made with care <span aria-hidden="true">♥</span></footer>
+  </main>
+</div>
+{% endblock %}

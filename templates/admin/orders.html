@@ -1,0 +1,29 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Manage Orders | FoodExpress{% endblock %}
+
+{% block admin_content %}
+<section class="admin-page-heading"><div><span class="eyebrow">ORDER OPERATIONS</span><h1>{% if order_filter == "pending" %}Pending Orders{% elif order_filter == "completed" %}Completed Orders{% else %}All Orders{% endif %}</h1><p>Review customer purchases, update progress, and coordinate delivery assignments.</p></div></section>
+<section class="admin-panel card">
+  <nav class="admin-order-filters" aria-label="Filter orders">
+    <a class="{% if order_filter == 'all' %}is-active{% endif %}" href="{{ url_for('admin.orders', status='all') }}">All Orders <span>{{ status_counts['all_orders'] }}</span></a>
+    <a class="{% if order_filter == 'pending' %}is-active{% endif %}" href="{{ url_for('admin.orders', status='pending') }}">Pending <span>{{ status_counts['pending_orders'] }}</span></a>
+    <a class="{% if order_filter == 'completed' %}is-active{% endif %}" href="{{ url_for('admin.orders', status='completed') }}">Completed <span>{{ status_counts['completed_orders'] }}</span></a>
+  </nav>
+  <div class="admin-panel-heading"><div><span class="eyebrow">CUSTOMER ORDERS</span><h2>Order management <span class="admin-count">{{ orders|length }}</span></h2></div><div class="admin-filter-tools"><div class="admin-filter-control"><label for="adminOrderSearch">Search orders</label><input id="adminOrderSearch" class="form-input" type="search" placeholder="Order, customer, product or status" aria-label="Search orders by order number, customer, product or status"></div></div></div>
+  <div class="admin-table-wrap table-responsive"><table class="admin-table admin-orders-table table align-middle mb-0"><thead><tr><th>ORDER / DATE</th><th>CUSTOMER</th><th>ORDERED PRODUCTS</th><th>TOTAL</th><th>STATUS</th><th>DELIVERY PERSON</th></tr></thead><tbody>
+  {% for order in orders %}{% set status_form, assignment_form = order_forms[order['id']] %}
+  <tr data-admin-order>
+    <td><strong>#{{ order['order_number'] }}</strong><small class="admin-cell-subtitle">ID {{ order['id'] }} · {{ order['created_at'] }}</small></td>
+    <td><strong>{{ order['customer_name'] }}</strong><small class="admin-cell-subtitle">{{ order['customer_email'] }}</small></td>
+    <td>{% for item in items_by_order.get(order['id'], []) %}{{ item['quantity'] }} × {{ item['food_name'] }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+    <td><strong>₹{{ order['total'] }}</strong></td>
+    <td><form method="post" action="{{ url_for('admin.update_order_status', order_id=order['id'], status=order_filter) }}" class="admin-inline-form">{{ status_form.hidden_tag() }}{{ status_form.status(class_="form-input form-select") }}<button class="admin-action-link" type="submit">Save</button></form></td>
+    <td><form method="post" action="{{ url_for('admin.assign_delivery', order_id=order['id'], status=order_filter) }}" class="admin-inline-form">{{ assignment_form.hidden_tag() }}{{ assignment_form.delivery_person_id(class_="form-input form-select") }}<button class="admin-action-link" type="submit">Assign</button></form></td>
+  </tr>
+  {% else %}<tr><td colspan="6" class="admin-table-empty">No orders match this filter.</td></tr>{% endfor %}
+  {% if orders %}<tr data-admin-order-empty hidden><td colspan="6" class="admin-table-empty">No orders match your search.</td></tr>{% endif %}
+  </tbody></table></div>
+  {% if not delivery_people %}<p class="admin-help-note">No delivery accounts yet. Create one with <code>flask --app app create-staff --role delivery</code> to enable assignments.</p>{% endif %}
+</section>
+{% endblock %}

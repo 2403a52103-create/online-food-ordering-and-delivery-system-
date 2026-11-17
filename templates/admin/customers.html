@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Customers | FoodExpress{% endblock %}
+
+{% block admin_content %}
+<section class="admin-page-heading"><div><span class="eyebrow">CUSTOMER DIRECTORY</span><h1>Customers</h1><p>{{ customers|length }} registered customer accounts.</p></div></section>
+<section class="admin-panel">
+  <div class="admin-panel-heading"><div><span class="eyebrow">REGISTERED ACCOUNTS</span><h2>All customers</h2></div></div>
+  <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>CUSTOMER</th><th>EMAIL</th><th>PHONE</th><th>ORDERS</th><th>JOINED</th></tr></thead><tbody>
+  {% for customer in customers %}<tr><td><strong>{{ customer['name'] }}</strong></td><td>{{ customer['email'] }}</td><td>{{ customer['phone'] }}</td><td>{{ customer['order_count'] }}</td><td>{{ customer['created_at'] }}</td></tr>
+  {% else %}<tr><td colspan="5" class="admin-table-empty">No customers have registered yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

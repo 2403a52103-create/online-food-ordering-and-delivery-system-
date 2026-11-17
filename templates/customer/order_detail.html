@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "partials/order_progress.html" import render_order_progress %}
+
+{% block title %}Order #{{ order['order_number'] }} | FoodExpress{% endblock %}
+
+{% block content %}
+<section class="page-hero order-detail-hero">
+  <div class="container">
+    <span class="eyebrow"><span class="eyebrow-dot"></span> Order #{{ order['order_number'] }}</span>
+    <h1>Order details</h1>
+    <p>Placed on {{ order['created_at'] }} · Order ID {{ order['id'] }}</p>
+  </div>
+</section>
+<section class="section customer-order-detail-page" data-order-status-poll data-status-url="{{ url_for('customer.order_statuses') }}">
+  <div class="container">
+    <p class="order-refresh-message" data-order-refresh-message role="status" aria-live="polite"></p>
+    <div class="order-detail-layout">
+      <article class="order-detail-card" data-order-card data-order-id="{{ order['id'] }}">
+        <div class="order-detail-status-heading">
+          <div><span class="eyebrow">CURRENT ORDER STATUS</span><h2 data-current-order-status>{{ order['tracking_status'] }}</h2></div>
+          <span class="order-status" data-order-status data-order-id="{{ order['id'] }}">{{ order['tracking_status'] }}</span>
+        </div>
+        <p class="tracking-cancelled-note" data-order-cancelled {% if order['tracking_status'] != 'Cancelled' %}hidden{% endif %}>This order was cancelled and will not be delivered.</p>
+        <div data-order-progress-wrap data-order-id="{{ order['id'] }}" {% if order['tracking_status'] == 'Cancelled' %}hidden{% endif %}>
+        {{ render_order_progress(order['id'], order['tracking_status'], order['stage_index'], order_stages, demo_auto_progress) }}
+        </div>
+        <h3 class="order-detail-subheading">Items in this order</h3>
+        <div class="order-detail-items">
+          {% for item in order['items'] %}
+          <div class="order-detail-item">
+            <span><strong>{{ item['food_name'] }}</strong><small>{{ item['quantity'] }} × ₹{{ item['unit_price'] }}</small></span>
+            <strong>₹{{ item['line_total'] }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="order-detail-totals">
+          <div><span>Subtotal</span><strong>₹{{ order['subtotal'] }}</strong></div>
+          <div><span>Delivery</span><strong>₹{{ order['delivery_fee'] }}</strong></div>
+          <div class="order-detail-total"><span>Total paid</span><strong>₹{{ order['total'] }}</strong></div>
+        </div>
+      </article>
+      <aside class="order-delivery-card">
+        <span class="eyebrow">DELIVERY DETAILS</span>
+        <h2>Where it’s going</h2>
+        <div><span>Delivery address</span><strong>{{ order['delivery_address'] or "Address not recorded" }}</strong></div>
+        <div><span>Contact phone</span><strong>{{ order['delivery_phone'] or "Phone not recorded" }}</strong></div>
+        <div><span>Order date</span><strong>{{ order['created_at'] }}</strong></div>
+      </aside>
+    </div>
+    <a class="text-link order-back-link" href="{{ url_for('customer.orders') }}">← Back to all orders</a>
+  </div>
+</section>
+{% endblock %}

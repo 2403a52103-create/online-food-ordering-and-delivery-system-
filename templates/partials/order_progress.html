@@ -1,0 +1,14 @@
+{% macro render_order_progress(order_id, status, stage_index, stages, demo_auto_progress=false) %}
+<ol class="order-progress" data-order-progress data-order-id="{{ order_id }}" aria-label="Order progress">
+  {% for stage in stages %}
+  <li class="order-progress-stage{% if loop.index0 < stage_index %} is-done{% elif loop.index0 == stage_index %} is-current{% endif %}"
+      data-stage="{{ stage }}" data-stage-index="{{ loop.index0 }}">
+    <span aria-hidden="true">{% if loop.index0 < stage_index %}✓{% else %}{{ loop.index }}{% endif %}</span>
+    <strong>{{ stage }}</strong>
+  </li>
+  {% endfor %}
+</ol>
+{% if demo_auto_progress %}
+<p class="demo-order-timing">Demo order timing: Preparing at 1 min, Ready for Pickup at 2 min, Out for Delivery at 3 min, Delivered at 5 min.</p>
+{% endif %}
+{% endmacro %}

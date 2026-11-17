@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fffaf4">
+  <meta name="description" content="FoodExpress brings your favorite meals to your door, fresh and fast.">
+  <title>{% block title %}FoodExpress | Good food, good mood{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  {% block framework_css %}{% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  {% block site_header %}
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="{{ url_for('home') }}" aria-label="FoodExpress home">
+        <span class="brand-mark" aria-hidden="true">F</span>
+        <span>Food<span class="brand-accent">Express</span></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="mainNavigation">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="main-nav" id="mainNavigation" aria-label="Main navigation">
+        <a href="{{ url_for('home') }}" {% if request.endpoint == 'home' %}aria-current="page"{% endif %}><span aria-hidden="true">⌂</span> Home</a>
+        <a href="{{ url_for('menu') }}" {% if request.endpoint == 'menu' %}aria-current="page"{% endif %}><span aria-hidden="true">▤</span> Menu</a>
+        <a href="{{ url_for('about') }}" {% if request.endpoint == 'about' %}aria-current="page"{% endif %}><span aria-hidden="true">♡</span> About</a>
+        <a href="{{ url_for('contact') }}" {% if request.endpoint == 'contact' %}aria-current="page"{% endif %}><span aria-hidden="true">✉</span> Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="login-link" href="{{ url_for('auth.login') }}">Login</a>
+        <a class="button button-small" href="{{ url_for('auth.register') }}">Register <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </header>
+  {% endblock %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container flash-container" aria-live="polite">
+      {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}" role="status">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+  <main>{% block content %}{% endblock %}</main>
+  {% block site_footer %}
+  <footer class="site-footer">
+    <div class="container footer-main">
+      <div class="footer-brand">
+        <a class="brand brand-light" href="{{ url_for('home') }}">
+          <span class="brand-mark" aria-hidden="true">F</span>
+          <span>Food<span class="brand-accent">Express</span></span>
+        </a>
+        <p>Good food, good mood. Fresh favorites delivered right to your door.</p>
+      </div>
+      <div class="footer-links">
+        <h2>Explore</h2>
+        <a href="{{ url_for('menu') }}">Our menu</a>
+        <a href="{{ url_for('about') }}">About us</a>
+        <a href="{{ url_for('contact') }}">Contact</a>
+      </div>
+      <div class="footer-links">
+        <h2>Follow along</h2>
+        <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
+        <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer">Facebook ↗</a>
+        <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
+      </div>
+      <div class="footer-note">
+        <span class="eyebrow eyebrow-light">A little note</span>
+        <p>Made with care. Delivered with a smile.</p>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <span>© 2026 FoodExpress. All rights reserved.</span>
+      <span>Fresh food, happy hearts <span class="heart" aria-hidden="true">♥</span></span>
+    </div>
+  </footer>
+  {% endblock %}
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

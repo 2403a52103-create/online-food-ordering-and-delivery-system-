@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% from "partials/order_progress.html" import render_order_progress %}
+
+{% block title %}Customer Dashboard | FoodExpress{% endblock %}
+
+{% block site_header %}{% endblock %}
+{% block site_footer %}{% endblock %}
+
+{% block content %}
+<div class="customer-shell">
+  <aside class="customer-sidebar">
+    <a class="brand dashboard-brand" href="{{ url_for('customer.dashboard') }}">
+      <span class="brand-mark" aria-hidden="true">F</span>
+      <span>Food<span class="brand-accent">Express</span></span>
+    </a>
+    <span class="sidebar-label">CUSTOMER SPACE</span>
+    <nav class="dashboard-nav" aria-label="Customer dashboard">
+      <a class="dashboard-nav-link is-current" href="#dashboard-home"><span aria-hidden="true">⌂</span> Home</a>
+      <a class="dashboard-nav-link" href="#food-menu"><span aria-hidden="true">◉</span> Food Menu</a>
+      <a class="dashboard-nav-link" href="#cart"><span aria-hidden="true">▣</span> My Cart <span class="nav-count" data-cart-count>{{ cart_count }}</span></a>
+      <a class="dashboard-nav-link" href="{{ url_for('customer.orders') }}"><span aria-hidden="true">▤</span> My Orders</a>
+      <a class="dashboard-nav-link" href="#track-orders"><span aria-hidden="true">⌖</span> Track Order</a>
+      <a class="dashboard-nav-link" href="#profile"><span aria-hidden="true">◎</span> Profile</a>
+    </nav>
+    <div class="sidebar-help">
+      <span class="help-icon" aria-hidden="true">✦</span>
+      <strong>Good food, good mood.</strong>
+      <p>Your next favorite is just a few clicks away.</p>
+    </div>
+    <a class="sidebar-admin-link" href="{{ url_for('admin.login') }}">Admin sign in <span aria-hidden="true">↗</span></a>
+    <form method="post" action="{{ url_for('auth.logout') }}" class="sidebar-logout">
+      {{ logout_form.hidden_tag() }}
+      <button class="logout-button" type="submit"><span aria-hidden="true">↪</span> Log out</button>
+    </form>
+  </aside>
+
+  <div class="customer-main" data-order-status-poll data-status-url="{{ url_for('customer.order_statuses') }}">
+    <header class="dashboard-topbar">
+      <div>
+        <span class="eyebrow">{{ today.strftime("%A, %d %B") }}</span>
+        <p>Good food is always a good idea.</p>
+      </div>
+      <a class="dashboard-avatar" href="#profile" aria-label="Go to profile">{{ customer["name"][0]|upper }}</a>
+    </header>
+
+    <section class="dashboard-welcome" id="dashboard-home">
+      <div class="welcome-copy">
+        <span class="eyebrow eyebrow-light">YOUR FOOD JOURNEY STARTS HERE</span>
+        <h1>Welcome back,<br><span>{{ customer["name"].split()[0] }}!</span></h1>
+        <p>Craving something delicious? Find a new favorite and we’ll bring it right to your door.</p>
+        <a class="button button-light" href="#food-menu">Explore the menu <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="welcome-art" aria-hidden="true">
+        <div class="welcome-sun"></div>
+        <img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="">
+        <span class="welcome-star">✳</span>
+      </div>
+      <div class="welcome-decoration" aria-hidden="true">FRESH<br>&amp; HAPPY</div>
+    </section>
+
+    <div class="dashboard-stat-row">
+      <a class="dashboard-stat" href="#cart">
+        <span class="stat-icon stat-orange" aria-hidden="true">▣</span>
+        <span><strong data-cart-count>{{ cart_count }}</strong><small>Items in cart</small></span>
+        <span class="stat-arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="dashboard-stat" href="#my-orders">
+        <span class="stat-icon stat-green" aria-hidden="true">▤</span>
+        <span><strong>{{ orders|length }}</strong><small>Recent orders</small></span>
+        <span class="stat-arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="dashboard-stat" href="#profile">
+        <span class="stat-icon stat-cream" aria-hidden="true">☺</span>
+        <span><strong>Foodie</strong><small>Member profile</small></span>
+        <span class="stat-arrow" aria-hidden="true">↗</span>
+      </a>
+    </div>
+
+    <section class="dashboard-section" id="food-menu">
+      <div class="dashboard-section-heading">
+        <div><span class="eyebrow">MADE FRESH, LOVED LOTS</span><h2>Find your new favorite</h2></div>
+        <span class="menu-note">Fresh picks, just for you <span aria-hidden="true">✦</span></span>
+      </div>
+      <label class="dashboard-search">
+        <span aria-hidden="true">⌕</span>
+        <input id="dashboardFoodSearch" type="search" placeholder="Search dishes..." aria-label="Search dishes">
+        <span class="search-shortcut">SEARCH</span>
+      </label>
+      <div class="dashboard-categories" role="group" aria-label="Filter menu by category">
+        <button class="filter-chip is-active" type="button" data-dashboard-category="all" aria-pressed="true">All dishes</button>
+        {% for category in categories %}
+        <button class="filter-chip" type="button" data-dashboard-category="{{ category['category'] }}" aria-pressed="false">{{ category['category']|replace("-", " ")|title }}</button>
+        {% endfor %}
+      </div>
+      <div class="dashboard-food-grid" id="dashboardFoodGrid">
+        {% for food in foods %}
+        <article class="dashboard-food-card" data-dashboard-food data-category="{{ food['category'] }}">
+          <div class="dashboard-food-image">
+            {% if food['image'] %}<img src="{{ food['image'] }}?auto=format&amp;fit=crop&amp;w=600&amp;q=85" alt="{{ food['name'] }}" loading="lazy">{% else %}<span class="food-placeholder" aria-hidden="true">🍽</span>{% endif %}
+            <span class="dashboard-food-badge">{{ food['badge'] }}</span>
+            {% if food['rating'] %}<span class="dashboard-food-rating">★ {{ food['rating'] }}</span>{% endif %}
+          </div>
+          <div class="dashboard-food-info">
+            <span class="dashboard-food-category">{{ food['category']|title }}</span>
+            <h3>{{ food['name'] }}</h3>
+            <p>{{ food['description'] }}</p>
+            <div class="dashboard-food-bottom">
+              <strong>₹{{ food['price'] }}</strong>
+              <form method="post" action="{{ url_for('customer.add_to_cart', food_id=food['id']) }}">
+                {{ add_form.hidden_tag() }}
+                {% if food['stock_quantity'] > 0 %}
+                <button class="add-cart-button" type="submit"><span aria-hidden="true">＋</span> Add to cart</button>
+                {% else %}
+                <button class="add-cart-button" type="button" disabled>Out of stock</button>
+                {% endif %}
+              </form>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      <p class="dashboard-empty-state" id="dashboardNoFoods" hidden>No dishes match. Try another search or category.</p>
+    </section>
+
+    <section class="dashboard-section cart-section" id="cart">
+      <div class="dashboard-section-heading">
+        <div><span class="eyebrow">YOUR GOODIES</span><h2>My cart <span class="heading-count" data-cart-count>{{ cart_count }}</span></h2></div>
+        <a class="dashboard-text-link" href="{{ url_for('customer.cart') }}">Open full cart <span aria-hidden="true">↗</span></a>
+      </div>
+      {% if cart_items %}
+      <div class="cart-layout">
+        <div class="cart-list">
+          {% for item in cart_items %}
+          <article class="cart-row">
+            {% if item['image'] %}<img src="{{ item['image'] }}?auto=format&amp;fit=crop&amp;w=180&amp;h=180&amp;q=80" alt="{{ item['name'] }}" loading="lazy">{% else %}<span class="food-placeholder" aria-hidden="true">🍽</span>{% endif %}
+            <div class="cart-row-info">
+              <span>{{ item['category']|title }}</span>
+              <h3>{{ item['name'] }}</h3>
+              <strong>₹{{ item['price'] }} each</strong>
+            </div>
+            <form method="post" action="{{ url_for('customer.update_cart') }}" class="quantity-form">
+              {{ update_form.csrf_token }}
+              <input type="hidden" name="item_id" value="{{ item['id'] }}">
+              <button type="button" data-quantity-change="-1" aria-label="Decrease {{ item['name'] }} quantity" {% if item['quantity'] <= 1 %}disabled{% endif %}>−</button>
+              <label class="visually-hidden" for="quantity-{{ item['id'] }}">Quantity for {{ item['name'] }}</label>
+              <input id="quantity-{{ item['id'] }}" type="number" name="quantity" value="{{ item['quantity'] }}" min="1" max="99">
+              <button type="button" data-quantity-change="1" aria-label="Increase {{ item['name'] }} quantity" {% if item['quantity'] >= 99 %}disabled{% endif %}>＋</button>
+              <button type="submit" class="quantity-update">Update</button>
+            </form>
+            <strong class="cart-line-total">₹{{ item['line_total'] }}</strong>
+            <form method="post" action="{{ url_for('customer.remove_from_cart', item_id=item['id']) }}">
+              {{ remove_form.hidden_tag() }}
+              <button class="remove-cart-button" type="submit" aria-label="Remove {{ item['name'] }} from cart">×</button>
+            </form>
+          </article>
+          {% endfor %}
+        </div>
+        <aside class="cart-summary">
+          <span class="eyebrow">ORDER SUMMARY</span>
+          <h3>Almost yours!</h3>
+          <div><span>Subtotal ({{ cart_count }} item(s))</span><strong>₹{{ cart_total }}</strong></div>
+          <div><span>Delivery</span><strong>₹{{ delivery_fee }}</strong></div>
+          <div class="cart-total"><span>Total</span><strong>₹{{ cart_total + delivery_fee }}</strong></div>
+          <a class="button checkout-button" href="{{ url_for('customer.cart') }}">Continue to checkout <span aria-hidden="true">↗</span></a>
+          <p>Freshly prepared with care.</p>
+        </aside>
+      </div>
+      {% else %}
+      <div class="dashboard-blank-state">
+        <span aria-hidden="true">🛍️</span><h3>Your cart is ready for something delicious</h3>
+        <p>Add your favorite dishes and they’ll show up here.</p>
+        <a class="button" href="#food-menu">Browse the menu <span aria-hidden="true">↗</span></a>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="dashboard-section orders-section" id="my-orders">
+      <div class="dashboard-section-heading">
+        <div><span class="eyebrow">THE GOOD TIMES KEEP COMING</span><h2>Recent orders</h2></div>
+        <a class="dashboard-text-link" href="{{ url_for('customer.orders') }}">View all orders <span aria-hidden="true">→</span></a>
+      </div>
+      {% if orders %}
+      <div class="orders-table-wrap">
+        <table class="orders-table">
+          <thead><tr><th>ORDER</th><th>DATE</th><th>ITEMS</th><th>TOTAL</th><th>STATUS</th><th></th></tr></thead>
+          <tbody>
+            {% for order in orders %}
+            <tr>
+              <td><strong>#{{ order['order_number'] }}</strong></td>
+              <td>{{ order['created_at'] }}</td>
+              <td>{% for item in items_by_order.get(order['id'], []) %}{{ item['quantity'] }} × {{ item['food_name'] }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+              <td><strong>₹{{ order['total'] }}</strong></td>
+              <td><span class="order-status" data-order-status data-order-id="{{ order['id'] }}">{{ order['tracking_status'] }}</span></td>
+              <td><a class="track-link" href="{{ url_for('customer.order_detail', order_id=order['id']) }}">Details <span aria-hidden="true">↗</span></a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="dashboard-blank-state compact-blank-state">
+        <span aria-hidden="true">🍽️</span><h3>Your first order story starts here</h3>
+        <p>When you place an order, its details and status will appear here.</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="dashboard-section tracking-section" id="track-orders">
+      <div class="dashboard-section-heading">
+        <div><span class="eyebrow">FROM OUR KITCHEN TO YOUR DOOR</span><h2>Track your orders</h2></div>
+      </div>
+      {% if orders %}
+      <div class="tracking-list">
+        {% for order in orders %}
+        <article class="tracking-card" id="track-order-{{ order['id'] }}" data-order-card data-order-id="{{ order['id'] }}">
+          <div class="tracking-card-top">
+            <div><span class="eyebrow">ORDER #{{ order['order_number'] }}</span><h3 data-order-title>{{ "This order was cancelled" if order['tracking_status'] == 'Cancelled' else "On its way to a good day" }}</h3></div>
+            <span class="order-status" data-order-status data-order-id="{{ order['id'] }}">{{ order['tracking_status'] }}</span>
+          </div>
+          <p class="tracking-cancelled-note" data-order-cancelled {% if order['tracking_status'] != 'Cancelled' %}hidden{% endif %}>This order will not be delivered.</p>
+          <div data-order-progress-wrap data-order-id="{{ order['id'] }}" {% if order['tracking_status'] == 'Cancelled' %}hidden{% endif %}>
+          {{ render_order_progress(order['id'], order['tracking_status'], order['stage_index'], order_stages, demo_auto_progress) }}
+          </div>
+          <div class="tracking-card-bottom"><span>Placed {{ order['created_at'] }}</span><strong>Total: ₹{{ order['total'] }}</strong></div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="dashboard-blank-state compact-blank-state">
+        <span aria-hidden="true">🛵</span><h3>No orders to track just yet</h3>
+        <p>Place an order and you can follow its progress here.</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="dashboard-section profile-section" id="profile">
+      <div class="dashboard-section-heading">
+        <div><span class="eyebrow">YOUR LITTLE CORNER</span><h2>My profile</h2></div>
+      </div>
+      <div class="profile-card">
+        <div class="profile-avatar">{{ customer["name"][0]|upper }}</div>
+        <div class="profile-detail"><span>FULL NAME</span><strong>{{ customer["name"] }}</strong></div>
+        <div class="profile-detail"><span>EMAIL ADDRESS</span><strong>{{ customer["email"] }}</strong></div>
+        <div class="profile-detail"><span>PHONE NUMBER</span><strong>{{ customer["phone"] }}</strong></div>
+        <form method="post" action="{{ url_for('auth.logout') }}" class="profile-logout-form">
+          {{ logout_form.hidden_tag() }}
+          <button type="submit" class="logout-button"><span aria-hidden="true">↪</span> Log out</button>
+        </form>
+      </div>
+    </section>
+
+    <footer class="dashboard-footer">Made with care at FoodExpress <span aria-hidden="true">♥</span></footer>
+  </div>
+</div>
+{% endblock %}

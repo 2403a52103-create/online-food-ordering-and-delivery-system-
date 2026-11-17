@@ -1,0 +1,28 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Stock Management | FoodExpress{% endblock %}
+
+{% block admin_content %}
+<section class="admin-page-heading"><div><span class="eyebrow">INVENTORY CONTROL</span><h1>Stock management</h1><p>Review availability and update quantities. Stock cannot be set below zero.</p></div></section>
+<section class="admin-panel card">
+  <div class="admin-panel-heading admin-products-heading"><div><span class="eyebrow">ACTIVE PRODUCTS</span><h2>Inventory <span class="admin-count">{{ foods|length }}</span></h2></div><div class="admin-filter-tools"><div class="admin-filter-control"><label for="adminStockSearch">Search products</label><input id="adminStockSearch" class="form-input" type="search" placeholder="Search by name" aria-label="Search stock by product name"></div><div class="admin-filter-control"><label for="adminStockCategoryFilter">Category</label><select id="adminStockCategoryFilter" class="form-input" aria-label="Filter stock by category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category['category'] }}">{{ category['category']|replace("-", " ")|title }}</option>{% endfor %}</select></div></div></div>
+  <div class="admin-table-wrap table-responsive"><table class="admin-table table align-middle mb-0"><thead><tr><th>PRODUCT</th><th>CATEGORY</th><th>AVAILABLE STOCK</th><th>STATUS</th><th>UPDATE QUANTITY</th></tr></thead><tbody>
+  {% for food in foods %}
+    {% set form = stock_forms[food['id']] %}
+    {% if food['stock_quantity'] == 0 %}{% set stock_status = "Out of Stock" %}{% elif food['stock_quantity'] <= 10 %}{% set stock_status = "Low Stock" %}{% else %}{% set stock_status = "In Stock" %}{% endif %}
+    <tr data-admin-stock data-product-name="{{ food['name']|lower }}" data-product-category="{{ food['category'] }}">
+      <td><div class="admin-food-cell">{% if food['image'] %}<img src="{{ food['image'] }}" alt="" loading="lazy">{% else %}<span class="admin-food-placeholder" aria-hidden="true">🍽</span>{% endif %}<strong>{{ food['name'] }}</strong></div></td>
+      <td>{{ food['category']|replace("-", " ")|title }}</td>
+      <td><strong>{{ food['stock_quantity'] }}</strong> units</td>
+      <td><span class="admin-stock-badge{% if food['stock_quantity'] == 0 %} is-empty{% elif food['stock_quantity'] <= 10 %} is-low{% endif %}">{{ stock_status }}</span></td>
+      <td><form method="post" action="{{ url_for('admin.update_stock', food_id=food['id']) }}" class="admin-inline-form admin-stock-form">
+        {{ form.hidden_tag() }}
+        {{ form.stock_quantity(class_="form-input form-control", min="0", max="1000000", required=true, aria_label="Stock quantity for " ~ food['name']) }}
+        <button class="button button-small" type="submit">Update</button>
+      </form></td>
+    </tr>
+  {% else %}<tr><td colspan="5" class="admin-table-empty">No active products to manage.</td></tr>{% endfor %}
+  {% if foods %}<tr data-admin-stock-empty hidden><td colspan="5" class="admin-table-empty">No products match these filters.</td></tr>{% endif %}
+  </tbody></table></div>
+</section>
+{% endblock %}

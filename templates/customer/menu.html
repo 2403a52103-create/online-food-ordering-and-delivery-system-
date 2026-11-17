@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Our Menu | FoodExpress{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow"><span class="eyebrow-dot"></span> A menu made for cravings</span>
+    <h1>Something delicious<br><span>is waiting for you.</span></h1>
+    <p>Fresh favorites from local kitchens, ready to make your day.</p>
+    <label class="search-box menu-search">
+      <span class="search-icon" aria-hidden="true">⌕</span>
+      <input id="foodSearch" type="search" placeholder="Search dishes by name..." aria-label="Search dishes by name">
+    </label>
+  </div>
+</section>
+<section class="section menu-listing">
+  <div class="container">
+    <div class="menu-filter-row">
+      <div>
+        <span class="eyebrow">The good stuff</span>
+        <h2>Our menu</h2>
+      </div>
+      <a class="text-link" href="{{ url_for('home') }}#popular">Back to home <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="menu-category-filters" role="group" aria-label="Filter menu by category">
+      <button class="filter-chip is-active" type="button" data-category-filter="all" aria-pressed="true">All dishes</button>
+      {% for category in categories %}
+      <button class="filter-chip" type="button" data-category-filter="{{ category['category'] }}" aria-pressed="false">{{ category['category']|replace("-", " ")|title }}</button>
+      {% endfor %}
+    </div>
+    <div class="food-grid" id="foodGrid">
+      {% for food in foods %}
+        {% include "partials/food_card.html" %}
+      {% endfor %}
+    </div>
+    <p class="empty-search" id="emptySearch" hidden>No dishes match that search. Try another favorite!</p>
+  </div>
+</section>
+{% endblock %}

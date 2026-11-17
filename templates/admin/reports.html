@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Sales Reports | FoodExpress{% endblock %}
+
+{% block admin_content %}
+<section class="admin-page-heading"><div><span class="eyebrow">BUSINESS INSIGHTS</span><h1>Sales reports</h1><p>Daily order volume and revenue, excluding cancelled orders.</p></div></section>
+<section class="admin-panel admin-chart-panel">
+  <div class="admin-panel-heading"><div><span class="eyebrow">DAILY PERFORMANCE</span><h2>Revenue by day</h2></div></div>
+  <div class="admin-chart-wrap"><canvas id="salesReportChart" aria-label="Daily sales revenue chart" role="img"></canvas></div>
+</section>
+<section class="admin-panel">
+  <div class="admin-panel-heading"><div><span class="eyebrow">RECENT HISTORY</span><h2>Daily sales summary</h2></div></div>
+  <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>DATE</th><th>ORDERS</th><th>REVENUE</th></tr></thead><tbody>
+  {% for report in reports %}<tr><td>{{ report['day'] }}</td><td>{{ report['order_count'] }}</td><td><strong>₹{{ report['revenue'] }}</strong></td></tr>
+  {% else %}<tr><td colspan="3" class="admin-table-empty">Sales data will appear when orders are placed.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
+        integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC"
+        crossorigin="anonymous"></script>
+<script>
+  const salesCanvas = document.getElementById("salesReportChart");
+  if (salesCanvas && window.Chart) {
+    new Chart(salesCanvas, {
+      type: "bar",
+      data: {
+        labels: {{ chart_days|tojson }},
+        datasets: [{
+          label: "Revenue (₹)",
+          data: {{ chart_revenue|tojson }},
+          backgroundColor: "rgba(233, 104, 50, .78)",
+          borderRadius: 6
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+  }
+</script>
+{% endblock %}

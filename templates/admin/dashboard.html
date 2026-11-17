@@ -1,0 +1,54 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard | FoodExpress{% endblock %}
+
+{% block admin_content %}
+<section class="admin-page-heading"><div><span class="eyebrow">BUSINESS OPERATIONS</span><h1>Admin Dashboard</h1><p>Good day, {{ admin_user['name'].split()[0] }}. Here is your restaurant at a glance.</p></div><div class="admin-heading-actions"><a class="button" href="{{ url_for('admin.menu') }}#add-product">＋ Add product</a><a class="admin-secondary-button" href="{{ url_for('admin.orders') }}">Manage orders ↗</a></div></section>
+<section class="admin-stat-grid" aria-label="Business summary">
+  <a class="admin-stat admin-stat-link card" href="{{ url_for('admin.menu') }}"><span class="admin-stat-icon">▣</span><div><span>Total Products</span><strong>{{ stats['total_products'] }}</strong></div><small>Active menu items</small></a>
+  <a class="admin-stat admin-stat-link card" href="{{ url_for('admin.stock') }}"><span class="admin-stat-icon">▦</span><div><span>Available Stock</span><strong>{{ stats['available_stock'] }}</strong></div><small>Units across all products</small></a>
+  <a class="admin-stat admin-stat-link card" href="{{ url_for('admin.orders', status='pending') }}"><span class="admin-stat-icon">◷</span><div><span>Pending Orders</span><strong>{{ stats['pending_orders'] }}</strong></div><small>Not yet delivered</small></a>
+  <a class="admin-stat admin-stat-link card" href="{{ url_for('admin.orders', status='completed') }}"><span class="admin-stat-icon">✓</span><div><span>Completed Orders</span><strong>{{ stats['completed_orders'] }}</strong></div><small>Delivered orders</small></a>
+</section>
+<section class="admin-panel admin-inventory-panel">
+  <div class="admin-panel-heading"><div><span class="eyebrow">INVENTORY ALERTS</span><h2>Low stock products</h2></div><a class="admin-inline-link" href="{{ url_for('admin.stock') }}">Manage stock ↗</a></div>
+  <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>PRODUCT</th><th>CATEGORY</th><th>AVAILABLE STOCK</th><th>STATUS</th><th>ACTION</th></tr></thead><tbody>
+  {% for food in low_stock_items %}<tr><td><strong>{{ food['name'] }}</strong></td><td>{{ food['category']|replace("-", " ")|title }}</td><td>{{ food['stock_quantity'] }}</td><td><span class="admin-stock-badge{% if food['stock_quantity'] == 0 %} is-empty{% elif food['stock_quantity'] <= 10 %} is-low{% endif %}">{{ "Out of Stock" if food['stock_quantity'] == 0 else ("Low Stock" if food['stock_quantity'] <= 10 else "In Stock") }}</span></td><td><a class="admin-action-link" href="{{ url_for('admin.stock') }}">Update stock</a></td></tr>
+  {% else %}<tr><td colspan="5" class="admin-table-empty">All active products are in stock.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="admin-panel admin-chart-panel">
+  <div class="admin-panel-heading"><div><span class="eyebrow">LAST 7 DAYS</span><h2>Revenue overview</h2></div><a class="admin-inline-link" href="{{ url_for('admin.reports') }}">View reports ↗</a></div>
+  <div class="admin-chart-wrap"><canvas id="adminRevenueChart" aria-label="Daily sales revenue chart" role="img"></canvas></div>
+</section>
+<section class="admin-panel">
+  <div class="admin-panel-heading"><div><span class="eyebrow">LATEST ACTIVITY</span><h2>Recent orders</h2></div><a class="admin-inline-link" href="{{ url_for('admin.orders') }}">All orders ↗</a></div>
+  <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>ORDER</th><th>CUSTOMER</th><th>DATE</th><th>TOTAL</th><th>STATUS</th><th>DELIVERY PERSON</th></tr></thead><tbody>
+  {% for order in recent_orders %}<tr><td><strong>#{{ order['order_number'] }}</strong></td><td>{{ order['customer_name'] }}</td><td>{{ order['created_at'] }}</td><td><strong>₹{{ order['total'] }}</strong></td><td><span class="admin-status status-{{ order['tracking_status']|lower|replace(' ', '-') }}">{{ order['tracking_status'] }}</span></td><td>{{ order['delivery_name'] or "Unassigned" }}</td></tr>
+  {% else %}<tr><td colspan="6" class="admin-table-empty">Orders will appear here when customers check out.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
+        integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC"
+        crossorigin="anonymous"></script>
+<script>
+  const revenueCanvas = document.getElementById("adminRevenueChart");
+  if (revenueCanvas && window.Chart) {
+    new Chart(revenueCanvas, {
+      type: "line",
+      data: {
+        labels: {{ report_days|tojson }},
+        datasets: [{
+          label: "Revenue (₹)",
+          data: {{ report_revenue|tojson }},
+          borderColor: "#e96832",
+          backgroundColor: "rgba(233, 104, 50, .12)",
+          fill: true,
+          tension: .35
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+  }
+</script>
+{% endblock %}

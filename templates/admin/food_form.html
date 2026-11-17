@@ -1,0 +1,20 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Edit {{ food['name'] }} | FoodExpress{% endblock %}
+
+{% block admin_content %}
+<section class="admin-page-heading"><div><span class="eyebrow">MENU MANAGEMENT</span><h1>Edit food item</h1><p>Update {{ food['name'] }} in your active menu.</p></div><a class="admin-inline-link" href="{{ url_for('admin.menu') }}">← Back to menu</a></section>
+<section class="admin-panel admin-edit-food-panel card">
+  <form method="post" class="admin-food-form">
+    {{ form.hidden_tag() }}
+    <div class="form-field">{{ form.name.label }}{{ form.name(class_="form-input form-control", required=true) }}{% for error in form.name.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field">{{ form.category.label }}{{ form.category(class_="form-input form-select", required=true) }}{% for error in form.category.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field">{{ form.price.label }}{{ form.price(class_="form-input form-control", min="0", max="1000000", required=true) }}{% for error in form.price.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field">{{ form.rating.label }}{{ form.rating(class_="form-input form-control", min="0", max="5", step="0.1", placeholder="Optional") }}{% for error in form.rating.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field">{{ form.stock_quantity.label }}{{ form.stock_quantity(class_="form-input form-control", min="0", max="1000000", required=true) }}{% for error in form.stock_quantity.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field admin-food-description">{{ form.description.label }}{{ form.description(class_="form-input form-control", rows=3, placeholder="Optional product description") }}{% for error in form.description.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field admin-food-image">{{ form.image.label }}{{ form.image(class_="form-input form-control", placeholder="Optional image URL or /static path") }}{% for error in form.image.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <button class="button" type="submit">Save changes</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Manage Food Menu | FoodExpress{% endblock %}
+
+{% block admin_content %}
+<section class="admin-page-heading"><div><span class="eyebrow">PRODUCT MANAGEMENT</span><h1>Products &amp; menu</h1><p>Add products, update menu details, and remove unavailable items.</p></div><a class="admin-secondary-button" href="{{ url_for('admin.stock') }}">Manage stock ↗</a></section>
+<section class="admin-panel admin-form-panel card" id="add-product">
+  <div class="admin-panel-heading"><div><span class="eyebrow">NEW LISTING</span><h2>Add a food item</h2></div></div>
+  <form method="post" action="{{ url_for('admin.add_food') }}" class="admin-food-form">
+    {{ food_form.hidden_tag() }}
+    <div class="form-field">{{ food_form.name.label }}{{ food_form.name(class_="form-input form-control", placeholder="e.g. Garden Veggie Pizza", required=true) }}{% for error in food_form.name.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field">{{ food_form.category.label }}{{ food_form.category(class_="form-input form-select", required=true) }}{% for error in food_form.category.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field">{{ food_form.price.label }}{{ food_form.price(class_="form-input form-control", min="0", max="1000000", required=true) }}{% for error in food_form.price.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field">{{ food_form.rating.label }}{{ food_form.rating(class_="form-input form-control", min="0", max="5", step="0.1", placeholder="Optional") }}{% for error in food_form.rating.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field">{{ food_form.stock_quantity.label }}{{ food_form.stock_quantity(class_="form-input form-control", min="0", max="1000000", required=true) }}{% for error in food_form.stock_quantity.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field admin-food-description">{{ food_form.description.label }}{{ food_form.description(class_="form-input form-control", rows=3, placeholder="Optional product description") }}{% for error in food_form.description.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <div class="form-field admin-food-image">{{ food_form.image.label }}{{ food_form.image(class_="form-input form-control", placeholder="Optional: https://... or /static/images/...") }}{% for error in food_form.image.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>
+    <button class="button" type="submit">Add food item <span aria-hidden="true">＋</span></button>
+  </form>
+</section>
+<section class="admin-panel card" id="inventory">
+  <div class="admin-panel-heading admin-products-heading"><div><span class="eyebrow">CURRENT LISTINGS</span><h2>All products <span class="admin-count">{{ foods|length }}</span></h2></div><div class="admin-filter-tools"><div class="admin-filter-control"><label for="adminProductSearch">Search products</label><input id="adminProductSearch" class="form-input" type="search" placeholder="Search by name" aria-label="Search products by name"></div><div class="admin-filter-control"><label for="adminCategoryFilter">Category</label><select id="adminCategoryFilter" class="form-input" aria-label="Filter products by category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category['category'] }}">{{ category['category']|replace("-", " ")|title }}</option>{% endfor %}</select></div></div></div>
+  <div class="admin-table-wrap table-responsive"><table class="admin-table table align-middle mb-0"><thead><tr><th>ID</th><th>PRODUCT</th><th>CATEGORY</th><th>PRICE</th><th>RATING</th><th>AVAILABLE STOCK</th><th>DESCRIPTION</th><th>ACTIONS</th></tr></thead><tbody>
+    {% for food in foods %}<tr data-admin-product data-product-name="{{ food['name']|lower }}" data-product-category="{{ food['category'] }}"><td>{{ food['id'] }}</td><td><div class="admin-food-cell">{% if food['image'] %}<img src="{{ food['image'] }}" alt="" loading="lazy">{% else %}<span class="admin-food-placeholder" aria-hidden="true">🍽</span>{% endif %}<strong>{{ food['name'] }}</strong></div></td><td>{{ food['category']|replace("-", " ")|title }}</td><td>₹{{ food['price'] }}</td><td>{{ "★ " ~ food['rating'] if food['rating'] else "—" }}</td><td><span class="admin-stock-badge{% if food['stock_quantity'] == 0 %} is-empty{% elif food['stock_quantity'] <= 10 %} is-low{% endif %}">{{ food['stock_quantity'] }} · {{ "Out of Stock" if food['stock_quantity'] == 0 else ("Low Stock" if food['stock_quantity'] <= 10 else "In Stock") }}</span></td><td class="admin-description-cell">{{ food['description'] or "—" }}</td><td><div class="admin-row-actions"><a class="admin-action-link" href="{{ url_for('admin.edit_food', food_id=food['id']) }}">Edit</a><form method="post" action="{{ url_for('admin.delete_food', food_id=food['id']) }}">{{ food_form.csrf_token }}<button class="admin-delete-button" type="submit" data-confirm-delete>Delete</button></form></div></td></tr>
+    {% else %}<tr><td colspan="8" class="admin-table-empty">No active food items.</td></tr>{% endfor %}
+    <tr data-admin-product-empty hidden><td colspan="8" class="admin-table-empty">No products match these filters.</td></tr>
+  </tbody></table></div>
+</section>
+{% endblock %}

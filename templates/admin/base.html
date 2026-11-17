@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block framework_css %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+{% endblock %}
+
+{% block site_header %}{% endblock %}
+{% block site_footer %}{% endblock %}
+
+{% block content %}
+<div class="admin-shell" data-dashboard="admin">
+  <aside class="admin-sidebar">
+    <a class="brand dashboard-brand" href="{{ url_for('admin.dashboard') }}">
+      <span class="brand-mark" aria-hidden="true">F</span>
+      <span>Food<span class="brand-accent">Express</span></span>
+    </a>
+    <span class="admin-sidebar-label">ADMIN CONTROL CENTER</span>
+    <nav class="admin-nav" aria-label="Admin dashboard">
+      <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}is-current{% endif %}"><span class="nav-icon" aria-hidden="true">⌂</span> Overview</a>
+      <a href="{{ url_for('admin.menu') }}" class="{% if request.endpoint in ['admin.menu', 'admin.add_food', 'admin.edit_food'] %}is-current{% endif %}"><span class="nav-icon" aria-hidden="true">✦</span> Products / Menu</a>
+      <a href="{{ url_for('admin.stock') }}" class="{% if request.endpoint in ['admin.stock', 'admin.update_stock'] %}is-current{% endif %}"><span class="nav-icon" aria-hidden="true">▦</span> Stock management</a>
+      <a href="{{ url_for('admin.customers') }}" class="{% if request.endpoint == 'admin.customers' %}is-current{% endif %}"><span class="nav-icon" aria-hidden="true">♙</span> Customers</a>
+      <a href="{{ url_for('admin.orders') }}" class="{% if request.endpoint in ['admin.orders', 'admin.update_order_status', 'admin.assign_delivery'] %}is-current{% endif %}"><span class="nav-icon" aria-hidden="true">▤</span> Orders</a>
+      <a href="{{ url_for('admin.reports') }}" class="{% if request.endpoint == 'admin.reports' %}is-current{% endif %}"><span class="nav-icon" aria-hidden="true">▥</span> Sales reports</a>
+      <a href="{{ url_for('home') }}"><span class="nav-icon" aria-hidden="true">↗</span> View storefront</a>
+    </nav>
+    <div class="admin-user-card"><span>Signed in as</span><strong>{{ admin_user['name'] }}</strong><small>{{ admin_user['email'] }}</small></div>
+    <form method="post" action="{{ url_for('admin.logout') }}" class="admin-logout">
+      {{ logout_form.hidden_tag() }}
+      <button type="submit">↪ Log out</button>
+    </form>
+  </aside>
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <span class="eyebrow">ADMIN CONTROL CENTER</span>
+        <p>Operations, performance, and order management.</p>
+      </div>
+      <div class="admin-topbar-user"><span>ADMIN</span><span class="admin-avatar">{{ admin_user['name'][0]|upper }}</span></div>
+    </header>
+    {% block admin_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}
